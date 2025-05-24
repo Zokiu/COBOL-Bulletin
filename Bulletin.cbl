@@ -430,6 +430,7 @@
            EXIT.
        0330-CLASS-AVERAGE-END.
 
+      *Paragraphe pour gérer les doublons dans les noms.
        0400-LASTNAME-DUPLICATES-START.
 
       *On itère un index pour parcourir le tableau pour chaque étudiant.
