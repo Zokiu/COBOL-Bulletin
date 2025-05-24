@@ -473,6 +473,8 @@
            EXIT.
        0500-SORT-NAME-END.
 
+      *Paragraphe gérant le remplissage ds structures d'éditions
+      *ainsi que l'écriture du fichier de sortie dans le format voulu.
        0600-WRITE-START.
 
            OPEN OUTPUT F-OUTPUT.
