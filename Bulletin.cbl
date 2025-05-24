@@ -117,6 +117,16 @@
                10 C-COEF         PIC 9(01)v9(01).
                10 C-GRADE        PIC 9(02)v9(02).
 
+      *Variable Tampon pour paramétrer COURSE-NBR
+       01  WS-TEMP-COURSE-NBR    PIC 9(03).
+
+      *Groupe de variable pour stocker les moyennes de la classe.
+       01  WS-AVERAGE.
+           05  WS-CLASS-AVERAGE  PIC 9(02)v9(02).
+           05  WS-TAB-C-AVERAGE OCCURS 1 TO 50 TIMES 
+                                              DEPENDING ON COURSE-NBR.
+                 10 WS-C-AVERAGE    PIC 9(02)v9(02).
+
       *Variables indépendantes pour les calculs de moyenne.
        01  WS-CALCUL.
            05 WS-CALCUL-COEF     PIC 9(04)v9(01).
@@ -129,32 +139,74 @@
       *Variable d'affichage d'étoile.
        01  AFF-ETOILE            PIC X(80) VALUE ALL "*".
 
-      *Variable Tampon pour paramétrer COURSE-NBR
-       01  WS-TEMP-COURSE-NBR    PIC 9(03).
+      *Index indépendant.
+       77  WS-IDX                PIC 9(03).
 
       *Groupe de variable pour préparation sortie affichage.
-       01  WS-OUTPUT.
-           05 WS-HEADER.
-              07 WS-TITLE.
+           
+           01 WS-HEADER.
+              05 WS-TITLE.
                 10 FILLER        PIC X(20) VALUE SPACE.
                 10 WS-TITLE-TEXT PIC X(17) VALUE "BULLETIN DE NOTES".
                 10 FILLER        PIC X(20) VALUE SPACE.
-              07 WS-SUB-HEADER.
-                10 FILLER        PIC X(08) VALUE "Nom ".
-                10 FILLER        PIC X(09) VALUE "Moyenne ".
-                10 WS-SUB-HDR-COURSE OCCURS 1 TO 999 TIMES
-                                         DEPENDING ON COURSE-LGHT
-                     15 FILLER                 PIC X(02) VALUE "C".
-                     15 WS-SUB-HDR-COURSE-NBR  PIC 9(03).
-                     15 FILLER                 PIC X(03).
-           05 WS-BODY            PIC X(250).
-                
-           05 WS-FOOTER.
-                10 FILLER        PIC X(21) VALUE SPACE.
-                10 WS-FOOTER-EOF PIC X(14) VALUE "Fin de rapport".
-                10 FILLER        PIC X(20) VALUE SPACE.
-                
+              05 WS-SUB-HEADER.
+                10 FILLER        PIC X(10) VALUE "Nom".
+                10 FILLER        PIC X(11) VALUE "Moyenne".
+                10 WS-SUB-HDR-COURSE OCCURS 1 TO 50 TIMES
+                                              DEPENDING ON COURSE-NBR.
+                     15 FILLER   PIC X(01) VALUE "C".
+                     15 WS-C-NBR PIC 9(01).
+                     15 FILLER   PIC X(04) VALUE SPACE.
+           
+           01 WS-BODY.
+                10 WS-NAME         PIC X(10).
+                10 WS-S-AVERAGE-ED PIC 9(02),9(02).
+                10 FILLER          PIC X(05) VALUE SPACE.
+                10 WS-TAB-GRADE OCCURS 1 TO 50 TIMES 
+                                              DEPENDING ON COURSE-NBR.
+                     15 WS-GRADE      PIC 9(02),9(02).
+                     15 FILLER        PIC X(01) VALUE SPACE.
+           01 WS-TOTAL.
+                05 FILLER              PIC X(10) VALUE "Classe: ".
+                05 WS-CLASS-AVERAGE-ED PIC 9(02),9(02).
+                05 FILLER              PIC X(05) VALUE SPACE.
+                05 WS-TAB-AVERAGE OCCURS 1 TO 50 TIMES
+                                              DEPENDING ON COURSE-NBR.
+                    10 WS-C-AVERAGE-ED PIC 9(02),9(02).
+                    10 FILLER          PIC X(01) VALUE SPACE.
+           
+           01 WS-COURSE-INFO.
+                05 WS-COURSE-INFO-TAB OCCURS 1 TO 50 TIMES
+                                              DEPENDING ON COURSE-NBR.
+                     10 FILLER     PIC X(01) VALUE "C".
+                     10 WS-C-NBR-2 PIC 9(01).
+                     10 FILLER     PIC X(01) VALUE SPACE.
+                     10 FILLER     PIC X(08) VALUE "=> COEF:".
+                     10 FILLER     PIC X(01) VALUE SPACE.
+                     10 WS-C-COEF  PIC 9(01),9(01).
+                     10 FILLER     PIC X(01) VALUE SPACE.
+                     10 FILLER     PIC X(06) VALUE "LABEL:".
+                     10 FILLER     PIC X(01) VALUE SPACE.
+                     10 WS-C-LABEL PIC X(21).
 
+           01 WS-STATS.
+             03 WS-STUDENT-NBR-ED.
+                05 FILLER     PIC X(18) VALUE "NOMBRE D'ELEVES =>".
+                05 FILLER     PIC X(01) VALUE SPACE.
+                05 WS-STUDENT-NBR       PIC Z(03).
+             03 WS-COURSE-NBR-ED.
+                05 FILLER     PIC X(18) VALUE "NOMBRE DE COURS =>".
+                05 FILLER     PIC X(01) VALUE SPACE.
+                05 WS-COURSE-NBR        PIC Z(03).
+             03 WS-GRADE-NBR-ED.
+                05 FILLER     PIC X(18) VALUE "NOMBRE DE NOTES =>".
+                05 FILLER     PIC X(01) VALUE SPACE.
+                05 WS-GRADE-NBR         PIC Z(03).
+                
+           01 WS-FOOTER.
+               10 FILLER        PIC X(21) VALUE SPACE.
+               10 WS-FOOTER-TXT PIC X(14) VALUE "Fin de rapport".
+               10 FILLER        PIC X(20) VALUE SPACE.
        
       ****************************************************************** 
       *    
@@ -170,8 +222,8 @@
            THRU    0200-DISPLAY-END.
 
       *Appel d'un paragraphe pour calculer les moyennes.
-           PERFORM 0300-S-AVERAGE-START
-           THRU    0300-S-AVERAGE-END.
+           PERFORM 0300-AVERAGE-START
+           THRU    0300-AVERAGE-END.
         
       *Appel d'un paragraphe pour gérer les doublons de S-LASTNAME.
            PERFORM 0400-LASTNAME-DUPLICATES-START
@@ -215,6 +267,7 @@
                        MOVE R-FIRSTNAME  TO S-FIRSTNAME(STUDENT-LGHT)
                        MOVE R-AGE        TO S-AGE(STUDENT-LGHT)
                        MOVE STUDENT-LGHT TO S-ID(STUDENT-LGHT)
+                       MOVE 0            TO WS-TEMP-COURSE-NBR
       *Dans le cas 2: On gère les cours.
       *On augmente la capacité du tableau à chaque itération.
       *On assigne l'ID de l'étudiant à tout les cours qui lui correspondent.
@@ -224,6 +277,10 @@
                        MOVE R-LABEL            TO C-LABEL(COURSE-LGHT)
                        MOVE R-COEF             TO C-COEF(COURSE-LGHT)
                        MOVE R-GRADE            TO C-GRADE(COURSE-LGHT)
+                       ADD 1                   TO WS-TEMP-COURSE-NBR
+                       IF WS-TEMP-COURSE-NBR > COURSE-NBR
+                       MOVE WS-TEMP-COURSE-NBR TO COURSE-NBR
+                       END-IF
                      WHEN OTHER 
                        DISPLAY "Valeur non trouvé"
                    END-EVALUATE
@@ -237,22 +294,6 @@
 
            EXIT.
        0100-READ-END.
-
-      *Paragraphe pour paramétrer le nombre maximum de cours
-       0110-COURSE-NBR-START.
-
-           PERFORM VARYING WS-STUDENT-IDX FROM 1 BY 1
-                                   UNTIL WS-STUDENT-IDX > STUDENT-LGHT
-                PERFORM VARYING WS-COURSE-IDX FROM 1 BY 1
-                                   UNTIL WS-COURSE-IDX  > COURSE-LGHT
-                         
-                          ADD 1 TO WS-TEMP-COURSE-NBR
-                END-PERFORM
-                IF WS-TEMP-COURSE-NBR > COURSE-NBR
-                     MOVE WS-TEMP-COURSE-NBR TO COURSE-NBR
-
-           EXIT.
-       0110-COURSE-NBR-END.
 
       *Paragraphe gérant l'affichage console des données stockées.
        0200-DISPLAY-START.
@@ -278,8 +319,23 @@
            EXIT.
        0200-DISPLAY-END.
 
+      *Paragraphe gérant le calcul de toutes les moyennes.
+       0300-AVERAGE-START.
+      *Appel d'un paragraphe pour la moyenne par élève.
+           PERFORM 0310-S-AVERAGE-START
+           THRU    0310-S-AVERAGE-END.
+      *Appel d'un paragraphe pour la moyenne par matière.
+           PERFORM 0320-C-AVERAGE-START
+           THRU    0320-C-AVERAGE-END.
+      *Appel d'un paragraphe pour la moyenne générale de la classe.
+           PERFORM 0330-CLASS-AVERAGE-START
+           THRU    0330-CLASS-AVERAGE-END.
+           
+           EXIT.
+       0300-AVERAGE-END.
+
       *Paragraphe gérant le calcul des moyennes par élève.
-       0300-S-AVERAGE-START.
+       0310-S-AVERAGE-START.
       *On boucle dans le tableau STUDENT
            PERFORM VARYING WS-STUDENT-IDX FROM 1 BY 1
                                    UNTIL WS-STUDENT-IDX > STUDENT-LGHT
@@ -318,7 +374,61 @@
            END-PERFORM.
 
            EXIT.
-       0300-S-AVERAGE-END.
+       0310-S-AVERAGE-END.
+
+      *Paragraphe gérant le calcul de la moyenne par matière.
+       0320-C-AVERAGE-START.
+      *On boucle autant de fois qu'il y a de cours différents.
+           PERFORM VARYING WS-IDX FROM 1 BY 1
+                               UNTIL WS-IDX > COURSE-NBR
+      *On réinitialise la variable tampon.
+                MOVE 0 TO WS-CALCUL-TEMP
+      *On boucle sur le tableau COURSE.
+                PERFORM VARYING WS-COURSE-IDX FROM 1 BY 1
+                                    UNTIL WS-COURSE-IDX > COURSE-LGHT
+      *Si Le Label du cours correspond à celui recherché: 
+      *On ajoute la note correspondante à une variable tampon.
+                  IF C-LABEL(WS-COURSE-IDX) = C-LABEL(WS-IDX)
+                     ADD C-GRADE(WS-COURSE-IDX) TO WS-CALCUL-TEMP
+                  END-IF
+                END-PERFORM
+      *On divise le total par le nombre d'étudiant (donc le nombre de note).
+                DIVIDE WS-CALCUL-TEMP BY STUDENT-LGHT 
+                                   GIVING WS-C-AVERAGE(WS-IDX) ROUNDED
+      *Affichage pour debug
+      D         DISPLAY WS-C-AVERAGE(WS-IDX)
+           END-PERFORM.
+           
+           EXIT.
+       0320-C-AVERAGE-END.
+
+      *Paragraphe gérant le calcul de la moyenne générale de la classe.
+       0330-CLASS-AVERAGE-START.
+      *On réinitialise les variables de calcul.
+           MOVE 0 TO WS-CALCUL-COEF.
+           MOVE 0 TO WS-CALCUL-SUM.
+      *On boucle sur le tableau COURSE.
+           PERFORM VARYING WS-COURSE-IDX FROM 1 BY 1
+                             UNTIL WS-COURSE-IDX >  COURSE-LGHT
+      *On ajoute tout les coefficients dans une variable tampon.
+                     ADD C-COEF(WS-COURSE-IDX) TO WS-CALCUL-COEF
+      *On multiplie les notes avec leur coefficients correspondants
+      *Et on stocke le résultat dans une variable tampon.
+                     MULTIPLY C-GRADE(WS-COURSE-IDX) BY
+                         C-COEF (WS-COURSE-IDX) GIVING
+                         WS-CALCUL-TEMP ROUNDED
+      *On ajoute chaque résultat dans une autre variable de calcul.
+                     ADD WS-CALCUL-TEMP TO WS-CALCUL-SUM
+           END-PERFORM.
+      *On divise la somme pondérée par la somme des coefficients
+      * et on arrondis le résultat.
+           DIVIDE WS-CALCUL-SUM BY WS-CALCUL-COEF GIVING
+                                    WS-CLASS-AVERAGE ROUNDED.
+      *Affichage pour debug.
+      D    DISPLAY WS-CLASS-AVERAGE.
+
+           EXIT.
+       0330-CLASS-AVERAGE-END.
 
        0400-LASTNAME-DUPLICATES-START.
 
@@ -376,27 +486,34 @@
            MOVE AFF-ETOILE TO REC-F-OUTPUT
            WRITE REC-F-OUTPUT
 
-           PERFORM VARYING S-ID FROM 1 BY 1 UNTIL S-ID
-
+           PERFORM VARYING WS-IDX FROM 1 BY 1
+                                    UNTIL WS-IDX > COURSE-NBR
+           MOVE WS-IDX TO WS-C-NBR(WS-IDX)
+      D    DISPLAY WS-IDX
+      D    DISPLAY  WS-SUB-HDR-COURSE
+           END-PERFORM.
+           MOVE WS-SUB-HEADER TO REC-F-OUTPUT
+           WRITE REC-F-OUTPUT
+           
 
            PERFORM VARYING WS-STUDENT-IDX FROM 1 BY 1
                                    UNTIL WS-STUDENT-IDX > STUDENT-LGHT
-             MOVE SPACE TO WS-BODY
+             MOVE SPACE TO WS-NAME
 
              STRING S-LASTNAME(WS-STUDENT-IDX) SPACE
                       S-INITIALS(WS-STUDENT-IDX) SPACE
-                      S-AVERAGE (WS-STUDENT-IDX) SPACE
-             INTO  WS-BODY
+             INTO  WS-NAME
+             MOVE S-AVERAGE (WS-STUDENT-IDX) TO WS-S-AVERAGE-ED
+             MOVE 0 TO WS-IDX
                 
              PERFORM VARYING WS-COURSE-IDX FROM 1 BY 1
                                    UNTIL WS-COURSE-IDX > COURSE-LGHT
-
+               
                IF C-ID(WS-COURSE-IDX) = S-ID(WS-STUDENT-IDX)
-                   STRING FUNCTION TRIM(WS-BODY) SPACE
-                          C-GRADE(WS-COURSE-IDX)
-                    INTO  WS-BODY
-      D            DISPLAY  C-ID(WS-COURSE-IDX) SPACE
-      D                     S-ID(WS-STUDENT-IDX)
+                 ADD 1 TO WS-IDX
+                 MOVE C-GRADE(WS-COURSE-IDX) TO WS-GRADE(WS-IDX)
+      D          DISPLAY  C-ID(WS-COURSE-IDX) SPACE
+      D                   S-ID(WS-STUDENT-IDX)
       
                END-IF
              END-PERFORM
@@ -406,10 +523,52 @@
 
            END-PERFORM.
 
+           MOVE SPACE TO REC-F-OUTPUT
+           WRITE REC-F-OUTPUT
+
+           MOVE 0 TO WS-IDX.
+           MOVE WS-CLASS-AVERAGE TO WS-CLASS-AVERAGE-ED
+           PERFORM VARYING WS-IDX FROM 1 BY 1
+                                    UNTIL WS-IDX > COURSE-NBR
+                    MOVE WS-C-AVERAGE(WS-IDX) TO WS-C-AVERAGE-ED(WS-IDX)
+           END-PERFORM.
+           MOVE WS-TOTAL TO REC-F-OUTPUT
+           WRITE REC-F-OUTPUT
+
+           MOVE AFF-ETOILE TO REC-F-OUTPUT
+           WRITE REC-F-OUTPUT
+
+           PERFORM VARYING WS-IDX FROM 1 BY 1
+                                    UNTIL WS-IDX > COURSE-NBR
+               MOVE WS-C-NBR(WS-IDX) TO WS-C-NBR-2(WS-IDX)
+               MOVE C-COEF(WS-IDX)   TO WS-C-COEF(WS-IDX)
+               MOVE C-LABEL(WS-IDX)  TO WS-C-LABEL(WS-IDX)
+               MOVE WS-COURSE-INFO-TAB(WS-IDX) TO REC-F-OUTPUT
+               WRITE REC-F-OUTPUT
+           END-PERFORM.
+           
+           MOVE AFF-ETOILE TO REC-F-OUTPUT
+           WRITE REC-F-OUTPUT
+
+           MOVE STUDENT-LGHT          TO WS-STUDENT-NBR
+           MOVE WS-STUDENT-NBR-ED     TO REC-F-OUTPUT
+           WRITE REC-F-OUTPUT
+
+           MOVE COURSE-NBR            TO WS-COURSE-NBR
+           MOVE WS-COURSE-NBR-ED      TO REC-F-OUTPUT
+           WRITE REC-F-OUTPUT
+
+           MOVE COURSE-LGHT           TO WS-GRADE-NBR
+           MOVE WS-GRADE-NBR-ED       TO REC-F-OUTPUT
+           WRITE REC-F-OUTPUT
+
            MOVE AFF-ETOILE TO REC-F-OUTPUT
            WRITE REC-F-OUTPUT
            
            MOVE WS-FOOTER TO REC-F-OUTPUT
+           WRITE REC-F-OUTPUT
+
+           MOVE AFF-ETOILE TO REC-F-OUTPUT
            WRITE REC-F-OUTPUT
 
            CLOSE F-OUTPUT.
