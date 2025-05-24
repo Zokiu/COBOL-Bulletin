@@ -89,3 +89,10 @@
       *Paragraphe gérant le remplissage ds structures d'éditions
       *ainsi que l'écriture du fichier de sortie dans le format voulu.
 ```
+# AXE D'AMELIORATION.
+```
+- Ajouter du contrôle d'entrée (ex: caractères spéciaux)
+- Traiter les doublons de matière
+- Traiter les notes absentes
+- Ajout d'appréciations en fonction des notes ou moyennes
+```
