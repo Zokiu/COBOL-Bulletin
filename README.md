@@ -89,5 +89,3 @@
       *Paragraphe gérant le remplissage ds structures d'éditions
       *ainsi que l'écriture du fichier de sortie dans le format voulu.
 ```
-
-```
